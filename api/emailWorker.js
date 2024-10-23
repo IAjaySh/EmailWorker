@@ -13,6 +13,8 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+console.log("these are the credentials : ",process.env.EMAIL_USER, " ", process.env.EMAIL_PASS);
+
 const startWorker = async () => {
     const connection = await amqplib.connect(RABBITMQ_URL);
     const channel = await connection.createChannel();
