@@ -2,7 +2,7 @@ const amqplib = require('amqplib');
 const nodemailer = require('nodemailer');
 require('dotenv').config();
 
-const RABBITMQ_URL = process.env.RABBITMQ_URL || 'amqp://localhost';
+const RABBITMQ_URL = `amqps://${process.env.RABBITMQ_USER}:${process.env.RABBITMQ_PASS}@${process.env.RABBITMQ_HOST}/${process.env.RABBITMQ_USER}`;
 const QUEUE_NAME = 'email_notifications';
 
 const transporter = nodemailer.createTransport({
@@ -17,7 +17,6 @@ const startWorker = async () => {
     const connection = await amqplib.connect(RABBITMQ_URL);
     const channel = await connection.createChannel();
     await channel.assertQueue(QUEUE_NAME);
-
     console.log('Waiting for messages in %s', QUEUE_NAME);
     
     channel.consume(QUEUE_NAME, async (msg) => {
@@ -31,7 +30,7 @@ const startWorker = async () => {
                 from: process.env.EMAIL_USER,
                 to: email,
                 subject: 'Login Notification',
-                text: 'You have successfully logged in!',
+                text: 'You have successfully logged in to our project netflix Clone!',
             });
             console.log(`Email sent to ${email}`);
             channel.ack(msg); // Acknowledge message
