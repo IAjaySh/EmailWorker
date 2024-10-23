@@ -13,19 +13,27 @@ const transporter = nodemailer.createTransport({
     },
 });
 
+let isWorkerRunning = false;
+
 const startWorker = async () => {
+    if (isWorkerRunning) {
+        console.log('Worker is already running.');
+        return;
+    }
+
+    isWorkerRunning = true;
+
     const connection = await amqplib.connect(RABBITMQ_URL);
     const channel = await connection.createChannel();
     await channel.assertQueue(QUEUE_NAME);
     console.log('Waiting for messages in %s', QUEUE_NAME);
 
     channel.consume(QUEUE_NAME, async (msg) => {
-        console.log("this is the message -> ", JSON.parse(msg.content.toString()));
         const { email } = JSON.parse(msg.content.toString());
 
         // Send email notification
         try {
-            const mail = await transporter.sendMail({
+            await transporter.sendMail({
                 from: process.env.EMAIL_USER,
                 to: email,
                 subject: 'Login Notification',
@@ -39,6 +47,7 @@ const startWorker = async () => {
         }
     });
 };
+
 
 // Create a Vercel API route
 module.exports = async (req, res) => {
